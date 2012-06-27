@@ -84,7 +84,7 @@
 
 			// store the elem & clone
 			self.$elem = $(elem)
-			self.$clone = self.$elem.clone().attr('tabindex',-1)
+			self.$clone = self.$elem.clone().attr({'tabindex':-1,'readonly':true})
 
 
 			// create an parent div for the clone
