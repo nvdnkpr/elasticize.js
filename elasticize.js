@@ -1,149 +1,171 @@
 (function($) {
 
-	var Elasticize = function( elem, options ) {
+    var Elasticize = function( elem, options ) {
 
-		var self = {}
-
-
-		// return if it's not a textarea
-		if ( elem.type !== 'textarea' ) { return self }
+        var self = {}
 
 
-		// bind the default options
-		self.options = $.extend( {}, defaults, options )
+        // return false if it's not a textarea
+        if ( elem.type !== 'textarea' ) { return false }
 
 
-		// expand the textarea on focus
-		self.expand = function() {
-
-			var clone = self.$clone[0],
-					elem = self.$elem[0]
-
-			// calculate new height
-			var newHeight = clone.scrollHeight + self.options.paddingBottom
-
-			// apply new height
-			elem.style.height = newHeight + 'px'
-
-			// trigger an `change`
-			self.$elem.trigger('change')
-
-			return self
-		}
+        // bind the default options
+        self.options = $.extend( {}, defaults, options )
 
 
-		// shrink the textarea on blur
-		self.shrink = function() {
+        // expand the textarea on focus
+        self.expand = function() {
 
-			var clone = self.$clone[0],
-					elem = self.$elem[0]
+            var clone = self.$clone[0],
+                elem = self.$elem[0]
 
-			// calculate new height
-			var newHeight = ( firefox )
-												? clone.fullHeight
-												: clone.fullHeight - self.options.paddingBottom
+            // calculate new height
+            var newHeight = clone.scrollHeight + self.options.paddingBottom
 
-			// apply new height
-			elem.style.height = newHeight + 'px'
+            // apply new height
+            elem.style.height = newHeight + 'px'
 
-			return self
-		}
+            // trigger an `change`
+            self.$elem.trigger('change')
 
-
-		// resize the textarea on various events
-		self.resize = function() {
-
-			var clone = self.$clone[0],
-					elem = self.$elem[0]
-			
-			// mirror to the clone
-			clone.value = elem.value
-
-			// reset the clone height
-			clone.style.height = 0
-
-			// calculate the full height
-			clone.fullHeight = clone.scrollHeight + self.options.paddingBottom
+            return self
+        }
 
 
-			// check if there's an increase or decrease in height
-			if ( clone.fullHeight !== elem.clientHeight ) {
+        // shrink the textarea on blur
+        self.shrink = function() {
 
-				// update the elem height
-				elem.style.height = ( firefox )
-															? clone.fullHeight + self.options.paddingBottom + 'px'
-															: clone.fullHeight + 'px'
-			}
+            var clone = self.$clone[0],
+                elem = self.$elem[0]
 
-			return self
-		}
+            // calculate new height
+            var newHeight = ( firefox )
+                                        ? clone.fullHeight
+                                        : clone.fullHeight - self.options.paddingBottom
 
+            // apply new height
+            elem.style.height = newHeight + 'px'
 
-		// initialize everything
-		self.__proto__.initialize = (function() {
-
-			// store the elem & clone
-			self.$elem = $(elem)
-			self.$clone = self.$elem.clone().attr({'tabindex':-1,'readonly':true})
+            return self
+        }
 
 
-			// create an parent div for the clone
-			self.$clone.box = $('<div />').css({
-				height: 0,
-				overflow: 'hidden'
-			}).html( self.$clone )
+        // resize the textarea on various events
+        self.resize = function() {
+
+            var clone = self.$clone[0],
+                elem = self.$elem[0]
+            
+            // mirror to the clone
+            clone.value = elem.value
+
+            // reset the clone height
+            clone.style.height = 0
+
+            // calculate the full height
+            clone.fullHeight = clone.scrollHeight + self.options.paddingBottom
 
 
-			// do stuff to the $elem
-			self.$elem
+            // check if there's an increase or decrease in height
+            if ( clone.fullHeight !== elem.clientHeight ) {
 
-				// print the clone
-				.after( self.$clone.box )
+                // update the elem height
+                elem.style.height = ( firefox )
+                                                ? clone.fullHeight + self.options.paddingBottom + 'px'
+                                                : clone.fullHeight + 'px'
+            }
 
-				// prevent manual resize
-				.css({
-					resize: 'none',
-					overflow: 'hidden'
-				})
-
-				// bind events
-				.on({
-
-					// bind resize events
-					'keydown keyup change cut blur focus': self.resize,
-					'input paste': function() { setTimeout( self.resize, 0 ) },
-
-					// bind the expand and shrink events
-					'focus': self.expand,
-					'blur': self.shrink
-				})
-
-		})()
+            return self
+        }
 
 
-		return self
-	},
+        // initialize everything
+        self.initialize = (function() {
+
+            // store the elem & clone
+            self.$elem = $(elem)
+            self.$clone = self.$elem.clone()
+                                .attr({
+                                    // empty out the name for safe form submission
+                                    name:       '',
+
+                                    // change the id
+                                    id:         elem.id + '_clone',
+
+                                    // make it unfocusable
+                                    tabindex:   -1,
+                                    readonly:   true,
+
+                                    // write it in stone
+                                    clone:      true
+                                })
 
 
-	// set the defaults
-	defaults = { 'paddingBottom': 16 },
-	firefox = /firefox/i.test( navigator.userAgent )
+            // create an parent div for the clone
+            self.$clone.box = $('<div />').css({
+                height: 0,
+                overflow: 'hidden'
+            }).html( self.$clone )
 
 
-	// extend jquery
-	$.fn.elasticize = function ( options ) {
+            // do stuff to the $elem
+            self.$elem
+
+                // print the clone box
+                .after( self.$clone.box )
+
+                // prevent manual resize
+                .css({
+                    resize: 'none',
+                    overflow: 'hidden'
+                })
+
+                // bind events
+                .on({
+
+                    // bind resize events
+                    'keydown keyup change cut blur focus': self.resize,
+                    'input paste': function() { setTimeout( self.resize, 0 ) },
+
+                    // bind the expand and shrink events
+                    'focus': self.expand,
+                    'blur': self.shrink
+                })
 
 
-		// go through each object passed and return it
-    return this.each(function () {
+            if ( self.options.trigger ) {
+                var delay = self.options.trigger || 0
+                
+                // trigger it
+                setTimeout(function() { self.$elem.trigger('blur') }, delay)    
+            }
 
-    	// check if it hasnt been elasticized
+        })()
 
-      if ( !$.data(this, 'elasticized') ) {
-        $.data(this, 'elasticized', Elasticize( this, options ) )
-      }
 
-    })
-  }
+        return self
+    },
 
-})(jQuery)
+
+    // set the defaults
+    defaults = { 'paddingBottom': 16 },
+    firefox = /firefox/i.test( navigator.userAgent )
+
+
+    // extend jquery
+    $.fn.elasticize = function ( options ) {
+
+
+        // go through each object passed and return it
+        return this.each(function () {
+
+            // check if it hasnt been elasticized and isn't a clone object getting re-elasticized
+
+            if ( !$.data(this, 'elasticized') && !this.getAttribute( 'clone' ) ) {
+                $.data(this, 'elasticized', Elasticize( this, options ) )
+            }
+
+        })
+    }
+
+})(jQuery);
