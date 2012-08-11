@@ -5,8 +5,8 @@
 		var self = {}
 
 
-		// return false if it's not a textarea
-		if ( elem.type !== 'textarea' ) { return false }
+		// return if it's not a textarea
+		if ( elem.type !== 'textarea' ) { return self }
 
 
 		// bind the default options
@@ -127,7 +127,7 @@
 
 	// set the defaults
 	defaults = { 'paddingBottom': 16 },
-	firefox = $.browser.mozilla
+	firefox = /firefox|gecko/i.test( navigator.userAgent )
 
 
 	// extend jquery
