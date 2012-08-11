@@ -127,7 +127,7 @@
 
 	// set the defaults
 	defaults = { 'paddingBottom': 16 },
-	firefox = /firefox|gecko/i.test( navigator.userAgent )
+	firefox = /firefox/i.test( navigator.userAgent )
 
 
 	// extend jquery
